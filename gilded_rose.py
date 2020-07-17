@@ -3,19 +3,22 @@
 class GildedRose(object):
     def __init__(self, items):
         self.items = items
+        self.items_updatable = [
+            item for item in self.items if isinstance(item, ItemUpdatable)
+        ]
 
     def update(self, days=1):
         while days > 0:
             days -= 1
 
-            for item in self.items:
+            for item in self.items_updatable:
                 item.update()
 
 
-# NOTE: Another potential implementation that would de-couple
+# NOTE: Another potentially better implementation that would decouple
 # Item from it's update logic would be to have a separate class
 # ItemUpdater which would accept Item when instantiated.
-# ItemUpdater could be added to items list, same as Item
+# ItemUpdater could be added to items list, same as Item.
 # In GildedRose there would be another attribute self.updaters.
 # If item was added to items list without being wrapped in an
 # updater, then it would be assigned the default one.
@@ -40,7 +43,7 @@ class Item:
         return "%s, %s, %s" % (self.name, self.sell_in, self.quality)
 
 
-class ItemWrapped(Item):
+class ItemUpdatable(Item):
     def __init__(self, name, sell_in, quality):
         if sell_in < 0:
             raise Exception(
@@ -68,7 +71,7 @@ class ItemWrapped(Item):
         raise NotImplementedError
 
 
-class ItemStatic(ItemWrapped):
+class ItemStatic(ItemUpdatable):
     def _update_sell_in(self):
         pass
 
@@ -76,14 +79,14 @@ class ItemStatic(ItemWrapped):
         pass
 
 
-class ItemRegular(ItemWrapped):
+class ItemRegular(ItemUpdatable):
     def _update_quality(self):
         self.quality -= 1
         if self.sell_in < 0:
             self.quality -= 1
 
 
-class ItemConjured(ItemWrapped):
+class ItemConjured(ItemUpdatable):
     # NOTE: Could be done more DRY by having a class attribute
     # `quality_decrement` which would be set as:
     # ItemRegular:
@@ -98,14 +101,14 @@ class ItemConjured(ItemWrapped):
             self.quality -= 2
 
 
-class ItemAgedBrie(ItemWrapped):
+class ItemAgedBrie(ItemUpdatable):
     def _update_quality(self):
         self.quality += 1
         if self.sell_in < 0:
             self.quality += 1
 
 
-class ItemBackstagePass(ItemWrapped):
+class ItemBackstagePass(ItemUpdatable):
     def _update_quality(self):
         if self.sell_in < 0:
             self.quality = 0
