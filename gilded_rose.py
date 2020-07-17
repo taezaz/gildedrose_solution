@@ -12,6 +12,24 @@ class GildedRose(object):
                 item.update()
 
 
+# NOTE: Another potential implementation that would de-couple
+# Item from it's update logic would be to have a separate class
+# ItemUpdater which would accept Item when instantiated.
+# ItemUpdater could be added to items list, same as Item
+# In GildedRose there would be another attribute self.updaters.
+# If item was added to items list without being wrapped in an
+# updater, then it would be assigned the default one.
+# GildedRose would work like this (pseudo-magic-code!):
+# __init__:
+#     self.items = [
+#         i.item if isinstance(upd, ItemUpdater) else i
+#         for i in items
+#     ]
+#     self.updaters = group_dict(updater_cls, updater_items)
+#     self.updaters[default_cls] = unwrapped_items
+# update:
+#     for updater_cls, items in self.updaters.iteritems():
+#         updater_cls(item).update()
 class Item:
     def __init__(self, name, sell_in, quality):
         self.name = name
@@ -66,6 +84,14 @@ class ItemRegular(ItemWrapped):
 
 
 class ItemConjured(ItemWrapped):
+    # NOTE: Could be done more DRY by having a class attribute
+    # `quality_decrement` which would be set as:
+    # ItemRegular:
+    #     quality_decrement = 1
+    # ItemConjured(ItemRegular):
+    #     quality_decrement = 2
+    # ItemAgedBrie(ItemRegular):
+    #     quality_decrement = -1
     def _update_quality(self):
         self.quality -= 2
         if self.sell_in < 0:
